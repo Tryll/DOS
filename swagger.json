@@ -1,0 +1,168 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "title": "Object API",
+      "version": "1.0.0"
+    },
+    "basePath": "/",
+    "tags": [
+      {
+        "name": "Object",
+        "description": "Operations related to objects"
+      }
+    ],
+    "paths": {
+      "/object/{id}": {
+        "get": {
+          "tags": [
+            "Object"
+          ],
+          "description": "Get an object by ID",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "ID of object to get",
+              "required": true,
+              "type": "integer"
+            },
+            {
+              "name": "from",
+              "in": "query",
+              "description": "Start timestamp of object history range (optional)",
+              "type": "string"
+            },
+            {
+              "name": "to",
+              "in": "query",
+              "description": "End timestamp of object history range (optional)",
+              "type": "string"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Object found"
+            },
+            "404": {
+              "description": "Object not found"
+            },
+            "500": {
+              "description": "Error getting object"
+            }
+          }
+        },
+        "put": {
+          "tags": [
+            "Object"
+          ],
+          "description": "Update an object with attributes",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "ID of object to update",
+              "required": true,
+              "type": "integer"
+            },
+            {
+              "name": "attributes",
+              "in": "body",
+              "description": "Object attributes to update",
+              "required": true,
+              "schema": {
+                "type": "object"
+              }
+            },
+            {
+              "name": "revisionId",
+              "in": "query",
+              "description": "Current revision ID of object",
+              "required": false,
+              "type": "string"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Attribute updated successfully"
+            },
+            "400": {
+              "description": "Invalid request"
+            },
+            "409": {
+              "description": "Conflict: current revision ID does not match"
+            },
+            "500": {
+              "description": "Error updating attribute"
+            }
+          }
+        },
+        "post": {
+          "tags": [
+            "Object"
+          ],
+          "description": "Create a new object with attributes",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "ID of object to create",
+              "required": true,
+              "type": "integer"
+            },
+            {
+              "name": "attributes",
+              "in": "body",
+              "description": "Object attributes to create",
+              "required": true,
+              "schema": {
+                "type": "object"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Object inserted successfully"
+            },
+            "400": {
+              "description": "Invalid request"
+            },
+            "409": {
+              "description": "Object with the given ID already exists"
+            },
+            "500": {
+              "description": "Error inserting object"
+            }
+          }
+        },
+        "delete": {
+          "tags": [
+            "Object"
+          ],
+        "description": "Delete an object",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of object to delete",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object deleted successfully"
+          },
+          "404": {
+            "description": "Object not found"
+          },
+          "500": {
+            "description": "Error deleting object"
+          }
+        }
+      }
+    }
+  }
+}
+
+          
+          

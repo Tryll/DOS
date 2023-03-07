@@ -2,6 +2,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const sql = require('mssql');
 
+// Test Interface:
+const swaggerUi = require("swagger-ui-express"),
+swaggerDocument = require("./swagger.json");
+
 const app = express();
 
 // SQL Server connection config
@@ -39,12 +43,15 @@ app.get('/object/:id?', async (req, res) => {
       res.json(currentObject.recordset[0]);
     } else {
       if (fromTimestamp && toTimestamp) {
-        query = `SELECT * FROM events WHERE objectId = @objectId AND timestamp BETWEEN @fromTimestamp AND @toTimestamp`;
         const request = new sql.Request();
-        const objectStates = await request.input('objectId', sql.Int, objectId).input('fromTimestamp', sql.BigInt, fromTimestamp).input('toTimestamp', sql.BigInt, toTimestamp).query(query);
+        request.input('objectId', sql.Int, objectId);
+        request.input('fromTimestamp', sql.BigInt, fromTimestamp);
+        request.input('toTimestamp', sql.BigInt, toTimestamp);
+
+        const objectStates = await request.query(`SELECT * FROM events WHERE objectId = @objectId AND timestamp BETWEEN @fromTimestamp AND @toTimestamp`);
         res.json(objectStates.recordset);
       } else {
-        res.status(400).send('Missing arguments, neither objectId or fromTimestamp AND toTimestamp was provided.');
+        res.status(400).send('Missing arguments, neither [objectId] or [from] AND [to] was provided.');
         return;
       }
     }
@@ -177,6 +184,12 @@ app.delete('/object/:id', async (req, res) => {
   }
 });
 
+// Development interface
+app.use(
+  '/developer',
+  swaggerUi.serve, 
+  swaggerUi.setup(swaggerDocument)
+);
   
   // Start server
 const port = 3000;
