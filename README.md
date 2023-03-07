@@ -24,7 +24,7 @@ CREATE TABLE events (
 */
 
 
-npm install express, body-parser, mssql
+npm install express, body-parser, mssql, swagger-ui-express
 
 node DOS.js
 
