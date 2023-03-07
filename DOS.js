@@ -5,26 +5,6 @@ const sql = require('mssql');
 const app = express();
 
 // SQL Server connection config
-/*
-CREATE TABLE objects (
-  objectId INT NOT NULL PRIMARY KEY,
-  attribute1 VARCHAR(255),
-  attribute2 VARCHAR(255),
-  revisionId BIGINT,
-  INDEX ix_objects_revisionId (revisionId)
-);
-
-CREATE TABLE events (
-  id INT NOT NULL PRIMARY KEY IDENTITY,
-  objectId INT NOT NULL,
-  attribute VARCHAR(255),
-  value VARCHAR(255),
-  timestamp BIGINT,
-  INDEX ix_events_objectId (objectId),
-  INDEX ix_events_timestamp (timestamp)
-);
-
-*/
 
 const config = {
   server: 'yourserver.database.windows.net',
@@ -194,5 +174,5 @@ app.delete('/object/:id', async (req, res) => {
   // Start server
 const port = 3000;
 app.listen(port, () => {
-  console.log("Server started on port ${port}");
+  console.log(`Server started on port ${port}`);
 });
