@@ -99,7 +99,7 @@ app.post('/object/:id', bodyParser.json(), async (req, res) => {
 app.put('/object/:id/:revisionId?', bodyParser.json(), async (req, res) => {
   const objectId = req.params.id;
   const attributes = req.body;
-  const currentRevisionId = req.params.revisionId || req.query.revisionId; // optional URL parameter
+  const currentRevisionId = req.params.revisionId; // optional URL parameter
   const timestamp = Date.now().toString();
 
   try {
@@ -107,13 +107,14 @@ app.put('/object/:id/:revisionId?', bodyParser.json(), async (req, res) => {
     const transaction = new sql.Transaction();
     await transaction.begin();
 
-    // Update object and revision ID, and check revision ID
+    // Update object attributes,  with or without revision check
     const request = new sql.Request(transaction);
-
-    // Add revision check if specified
-    const revisionConsisteny = (currentRevisionId) ? "AND revisionId = @currentRevisionId" :"";
     const attributeUpdates = Object.entries(attributes).map(([attribute, value]) => `${attribute} = '${value}'`).join(', ');
-    const result = await request.input('objectId', sql.Int, objectId).input('currentRevisionId', sql.BigInt, currentRevisionId).query(`UPDATE objects SET ${attributeUpdates}, revisionId = @timestamp WHERE objectId = @objectId ${revisionConsisteny}`);
+
+    const revisionConsisteny = (currentRevisionId) ? "AND revisionId = @currentRevisionId" :"";   // Add revision check if specified
+    request.input('objectId', sql.Int, objectId);
+    request.input('currentRevisionId', sql.BigInt, currentRevisionId);
+    const result = await request.query(`UPDATE objects SET ${attributeUpdates}, revisionId = @timestamp WHERE objectId = @objectId ${revisionConsisteny}`);
     if (result.rowsAffected[0] === 0) {
       // Object was updated by another client
       await transaction.rollback();
@@ -121,9 +122,13 @@ app.put('/object/:id/:revisionId?', bodyParser.json(), async (req, res) => {
       return;
     }
 
-    // Update object history
+    // Update object history for all attributes
     for (const [attribute, value] of Object.entries(attributes)) {
-      await request.input('attribute', sql.NVarChar, attribute).input('value', sql.NVarChar, value).input('timestamp', sql.BigInt, timestamp).input('objectId', sql.Int, objectId).query(`INSERT INTO events (objectId, attribute, value, timestamp) VALUES (@objectId, @attribute, @value, @timestamp)`);
+      request.input('attribute', sql.NVarChar, attribute);
+      request.input('value', sql.NVarChar, value);
+      request.input('timestamp', sql.BigInt, timestamp).input('objectId', sql.Int, objectId);
+
+      await request.query(`INSERT INTO events (objectId, attribute, value, timestamp) VALUES (@objectId, @attribute, @value, @timestamp)`);
     }
 
     // Commit transaction
@@ -148,7 +153,9 @@ app.delete('/object/:id', async (req, res) => {
 
     // Delete object by ID
     const request = new sql.Request(transaction);
-    const result = await request.input('objectId', sql.Int, objectId).query('DELETE FROM objects WHERE objectId = @objectId');
+    request.input('objectId', sql.Int, objectId);
+
+    const result = await request.query('DELETE FROM objects WHERE objectId = @objectId');
     if (result.rowsAffected[0] === 0) {
       // Object not found
       await transaction.rollback();
